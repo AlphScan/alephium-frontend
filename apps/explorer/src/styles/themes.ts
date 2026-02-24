@@ -1,7 +1,7 @@
 import { colord } from 'colord'
 import { DefaultTheme } from 'styled-components'
 
-export type ThemeType = 'light' | 'dark'
+export type ThemeType = 'dark' | 'light'
 
 export const lightTheme: DefaultTheme = {
   name: 'light',

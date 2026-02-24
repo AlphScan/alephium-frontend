@@ -104,6 +104,7 @@ const App = () => {
           <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
             <StaticDataProvider>
               <AppHeader />
+
               <ContentContainer>
                 <ContentWrapper>
                   <Content>

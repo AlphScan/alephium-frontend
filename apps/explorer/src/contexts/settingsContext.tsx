@@ -14,7 +14,7 @@ export interface SettingsContextValue {
 const systemThemeQuery = matchMedia('(prefers-color-scheme: dark)')
 
 //could be `no-preference` so default is `light`'
-const currentSystemTheme = () => (systemThemeQuery.matches ? 'dark' : 'light')
+const currentSystemTheme = () => (systemThemeQuery.matches ? 'light' : 'dark' )
 
 const initialSystemTheme: ThemeType = currentSystemTheme()
 

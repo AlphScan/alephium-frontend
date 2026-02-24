@@ -3,6 +3,7 @@ import styled from 'styled-components'
 
 import ExternalLink from '@/components/ExternalLink'
 import NetworkSwitch from '@/components/NetworkSwitch'
+import { getNetworkSettings } from '@/api/getNetworkSettings'
 import ThemeSwitcher from '@/components/ThemeSwitcher'
 import LanguageSwitch from '@/features/localization/LanguageSwitch'
 import { ReactComponent as DiscordIcon } from '@/images/brand-icon-discord.svg'
@@ -19,8 +20,17 @@ interface AppFooterProps {
 
 const AppFooter = ({ className }: AppFooterProps) => {
   const { t } = useTranslation()
-
+  const { explorerUrl, nodeUrl } = getNetworkSettings()
   return (
+    <div>
+        <div style={{textAlign:"center"}}>
+		<div>  
+			Node <a href={`${nodeUrl}/docs`} target="_blank">{nodeUrl}</a>
+		</div>
+		<div>  
+			Backend <a href={`${explorerUrl}/docs`} target="_blank">{explorerUrl}</a>
+		</div>	
+        </div>
     <footer className={className}>
       <LeftGroup>
         <StyledNetworkSwitch direction="up" />
@@ -41,6 +51,7 @@ const AppFooter = ({ className }: AppFooterProps) => {
         </SocialMediaIconList>
       </RightGroup>
     </footer>
+    </div>
   )
 }
 

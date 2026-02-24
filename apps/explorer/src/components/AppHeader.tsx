@@ -17,6 +17,7 @@ const AppHeader = ({ className }: AppHeaderProps) => {
   const { width } = useWindowSize()
 
   return (
+    <>
     <header className={className}>
       <HeaderSideContainer justifyContent="flex-start">
         <StyledLogoLink to="/">
@@ -25,7 +26,13 @@ const AppHeader = ({ className }: AppHeaderProps) => {
       </HeaderSideContainer>
       {(pathname !== '/' || (width && width <= deviceSizes.mobile)) && <StyledSearchBar />}
       <HeaderSideContainer justifyContent="flex-end" hideOnMobile></HeaderSideContainer>
+      <div style={{textAlign:"center"}}>
+        <div>Provided by </div>
+        <div><a href="https://babypooltool.com" target="_blank">babypooltool.com</a></div>
+       </div>
+
     </header>
+    </>
   )
 }
 
