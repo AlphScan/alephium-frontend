@@ -2,7 +2,7 @@
   "extends": ["//"],
   "pipeline": {
     "build": {
-      "env": ["VITE_NETWORK_TYPE", "VITE_BACKEND_URL", "VITE_NODE_URL", "BASE_URL"],
+      "env": ["VITE_NETWORK_TYPE", "VITE_BACKEND_URL", "VITE_NODE_URL", "VITE_ALPHSCAN_API_URL", "VITE_ALPHSCAN_API_KEY", "VITE_ALPHSCAN_API_STAGE", "BASE_URL"],
       "outputs": ["build/**"]
     },
     "start:app": {

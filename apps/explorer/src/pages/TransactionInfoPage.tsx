@@ -2,6 +2,9 @@ import { isConfirmedTx, MAX_API_RETRIES } from '@alephium/shared'
 import { ALPH } from '@alephium/token-list'
 import { explorer } from '@alephium/web3'
 import { PerChainHeight } from '@alephium/web3/dist/src/api/api-explorer'
+import { useTxNormalizedEvents } from '@alphscan/sdk-react'
+import { NormalizedEventsList } from '@alphscan/sdk-react-ui'
+import '@alphscan/sdk-react-ui/styles.css'
 import { useQuery } from '@tanstack/react-query'
 import _, { sortBy, uniq } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
@@ -28,6 +31,7 @@ import TableRow from '@/components/Table/TableRow'
 import Timestamp from '@/components/Timestamp'
 import TransactionIOList from '@/components/TransactionIOList'
 import { useSnackbar } from '@/hooks/useSnackbar'
+import { getNetworkSettings } from '@/api/getNetworkSettings'
 import { AssetType } from '@/types/assets'
 import { calculateIoAmountsDelta } from '@/utils/transactions'
 
@@ -104,6 +108,20 @@ const TransactionInfoPage = () => {
 
   const tokenMetadataInvolved = useAssetsMetadata(assetIds)
   const addressesInvolved = uniq([...Object.keys(alphDeltaAmounts), ...Object.keys(tokenDeltaAmounts)])
+
+  const alphscanApiUrl = import.meta.env.VITE_ALPHSCAN_API_URL
+  const alphscanApiKey = import.meta.env.VITE_ALPHSCAN_API_KEY
+  const alphscanApiStage = import.meta.env.VITE_ALPHSCAN_API_STAGE
+  const { data: normalizedEventsData, loading: normalizedEventsLoading } = useTxNormalizedEvents(id, {
+    settings: {
+      apiUrl: alphscanApiUrl || undefined,
+      apiKey: alphscanApiKey || undefined,
+      version: alphscanApiStage || undefined
+    },
+    enabled: !!id && !!confirmedTxInfo
+  })
+  const normalizedEvents = normalizedEventsData?.events ?? []
+  const { explorerUrl } = getNetworkSettings()
 
   const getSortedTokens = useCallback(
     (tokenIds: string[]) => {
@@ -307,6 +325,25 @@ const TransactionInfoPage = () => {
             )}
           </FeesTable>
 
+          {confirmedTxInfo && (
+            <>
+              <SecondaryTitle>{t('Normalized events')}</SecondaryTitle>
+              {normalizedEventsLoading ? (
+                <NormalizedEventsSection>
+                  <LoadingSpinner size={24} />
+                </NormalizedEventsSection>
+              ) : normalizedEvents.length > 0 ? (
+                <NormalizedEventsSection>
+                  <NormalizedEventsList
+                    events={normalizedEvents}
+                    emptyMessage={t('No events')}
+                    eventRowProps={{ explorerUrl }}
+                  />
+                </NormalizedEventsSection>
+              ) : null}
+            </>
+          )}
+
           <SecondaryTitle>{t('Inputs & outputs')}</SecondaryTitle>
           <IOTable noBorder bodyOnly isLoading={txInfoLoading}>
             <TableBody>
@@ -336,6 +373,7 @@ const TransactionInfoPage = () => {
               )}
             </TableBody>
           </IOTable>
+
         </>
       ) : (
         <InlineErrorMessage message={errorMessage} code={errorCode} />
@@ -378,6 +416,10 @@ const FeesTable = styled(Table)`
 `
 
 const IOTable = styled(Table)``
+
+const NormalizedEventsSection = styled.div`
+  margin-top: 20px;
+`
 
 const DetltaAmountsContainer = styled.div`
   display: grid;
