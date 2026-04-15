@@ -5,6 +5,8 @@ import { PerChainHeight } from '@alephium/web3/dist/src/api/api-explorer'
 import { useTxNormalizedEvents } from '@alphscan/sdk-react'
 import { NormalizedEventsList } from '@alphscan/sdk-react-ui'
 import '@alphscan/sdk-react-ui/styles.css'
+
+import { getAlphscanExplorerWebBaseUrl } from '@/pages/AddressPage/alphscanContractUtils'
 import { useQuery } from '@tanstack/react-query'
 import _, { sortBy, uniq } from 'lodash'
 import { useCallback, useEffect, useState } from 'react'
@@ -31,7 +33,6 @@ import TableRow from '@/components/Table/TableRow'
 import Timestamp from '@/components/Timestamp'
 import TransactionIOList from '@/components/TransactionIOList'
 import { useSnackbar } from '@/hooks/useSnackbar'
-import { getNetworkSettings } from '@/api/getNetworkSettings'
 import { AssetType } from '@/types/assets'
 import { calculateIoAmountsDelta } from '@/utils/transactions'
 
@@ -121,7 +122,7 @@ const TransactionInfoPage = () => {
     enabled: !!id && !!confirmedTxInfo
   })
   const normalizedEvents = normalizedEventsData?.events ?? []
-  const { explorerUrl } = getNetworkSettings()
+  const alphscanExplorerWebUrl = getAlphscanExplorerWebBaseUrl()
 
   const getSortedTokens = useCallback(
     (tokenIds: string[]) => {
@@ -337,7 +338,7 @@ const TransactionInfoPage = () => {
                   <NormalizedEventsList
                     events={normalizedEvents}
                     emptyMessage={t('No events')}
-                    eventRowProps={{ explorerUrl }}
+                    eventRowProps={{ explorerUrl: alphscanExplorerWebUrl }}
                   />
                 </NormalizedEventsSection>
               ) : null}

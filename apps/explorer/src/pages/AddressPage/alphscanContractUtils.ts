@@ -49,6 +49,17 @@ export function getAlphscanContractApiSettings(): {
   }
 }
 
+/**
+ * Base URL of this explorer web app for `@alphscan/sdk-react-ui` links (addresses, transactions).
+ * This is not {@link import.meta.env.VITE_BACKEND_URL} (Explorer API). When unset, uses `window.location.origin`.
+ */
+export function getAlphscanExplorerWebBaseUrl(): string {
+  const fromEnv = import.meta.env.VITE_ALPHSCAN_EXPLORER_URL?.trim().replace(/\/$/, '')
+  if (fromEnv) return fromEnv
+  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
+  return ''
+}
+
 export function tokenWebsiteFromRecord(c: AlphscanContractRecordWithMeta): string {
   const m = c.token_metadata
   if (!m || typeof m !== 'object') return ''
