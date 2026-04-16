@@ -35,6 +35,13 @@ function toViewFields(rows: AlphscanContractRecordField[]): ContractFieldForStat
     resolved_token_id: f.resolved_token_id ?? null,
     resolved_link_address: f.resolved_link_address ?? null,
     resolved_token_logo_uri: f.resolved_token_logo_uri ?? null,
+    resolved_http_url: f.resolved_http_url ?? null,
+    resolved_media_cdn_url: f.resolved_media_cdn_url ?? null,
+    resolved_media_cdn_preview_url: f.resolved_media_cdn_preview_url ?? null,
+    resolved_media_cached_at: f.resolved_media_cached_at ?? null,
+    resolved_media_last_verified_at: f.resolved_media_last_verified_at ?? null,
+    resolved_media_source_origin: f.resolved_media_source_origin ?? null,
+    resolved_media_hoster_logo_uri: f.resolved_media_hoster_logo_uri ?? null,
   }))
 }
 
