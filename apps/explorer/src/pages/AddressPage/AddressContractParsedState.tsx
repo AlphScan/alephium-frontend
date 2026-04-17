@@ -1,17 +1,17 @@
-import { addressFromContractId } from '@alephium/web3'
-import { useContractRecord, type AlphscanContractRecordField } from '@alphscan/sdk-react'
-import {
-  ContractHierarchyNav,
-  ContractParsedStateView,
-  type ContractFieldForState,
-} from '@alphscan/sdk-react-ui'
 import '@alphscan/sdk-react-ui/styles.css'
+
+import { addressFromContractId } from '@alephium/web3'
+import { type AlphscanContractRecordField, useContractRecord } from '@alphscan/sdk-react'
+import { type ContractFieldForState, ContractHierarchyNav, ContractParsedStateView } from '@alphscan/sdk-react-ui'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import LoadingSpinner from '@/components/LoadingSpinner'
-import useIsContract from '@/pages/AddressPage/useIsContract'
+import { useAlphscanNftRegistryRow } from '@/hooks/useAlphscanNftRegistryRow'
+import AddressNftRegistryMetadata from '@/pages/AddressPage/AddressNftRegistryMetadata'
 import { contractRecordToSummary, getAlphscanContractApiSettings } from '@/pages/AddressPage/alphscanContractUtils'
+import { alphscanNftRegistryKindFromInterfaceId } from '@/pages/AddressPage/alphscanNftInterface'
+import useIsContract from '@/pages/AddressPage/useIsContract'
 
 function explorerHrefForTokenIdHex(hexLower: string): string {
   const h = hexLower.replace(/^0x/i, '').toLowerCase()
@@ -41,7 +41,7 @@ function toViewFields(rows: AlphscanContractRecordField[]): ContractFieldForStat
     resolved_media_cached_at: f.resolved_media_cached_at ?? null,
     resolved_media_last_verified_at: f.resolved_media_last_verified_at ?? null,
     resolved_media_source_origin: f.resolved_media_source_origin ?? null,
-    resolved_media_hoster_logo_uri: f.resolved_media_hoster_logo_uri ?? null,
+    resolved_media_hoster_logo_uri: f.resolved_media_hoster_logo_uri ?? null
   }))
 }
 
@@ -53,16 +53,20 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
   const { t } = useTranslation()
   const isContract = useIsContract(addressStr)
 
-  const { apiUrl: alphscanApiUrl, apiKey: alphscanApiKey, version: alphscanApiStage, dappLogosBase } =
-    getAlphscanContractApiSettings()
+  const {
+    apiUrl: alphscanApiUrl,
+    apiKey: alphscanApiKey,
+    version: alphscanApiStage,
+    dappLogosBase
+  } = getAlphscanContractApiSettings()
 
   const { data, loading, error } = useContractRecord(addressStr, {
     settings: {
       apiUrl: alphscanApiUrl,
       apiKey: alphscanApiKey,
-      version: alphscanApiStage,
+      version: alphscanApiStage
     },
-    enabled: isContract,
+    enabled: isContract
   })
 
   const parentAddr = data?.contract.parent_address?.trim() ?? ''
@@ -70,10 +74,12 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
     settings: {
       apiUrl: alphscanApiUrl,
       apiKey: alphscanApiKey,
-      version: alphscanApiStage,
+      version: alphscanApiStage
     },
-    enabled: isContract && Boolean(parentAddr),
+    enabled: isContract && Boolean(parentAddr)
   })
+
+  const { data: nftRegistry } = useAlphscanNftRegistryRow(addressStr, data?.contract?.interface_id)
 
   const getDappIconUrl = (dappId: string): string | undefined => {
     const id = dappId.replace(/[^a-zA-Z0-9_-]/g, '')
@@ -114,9 +120,20 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
   const viewFields = toViewFields(data.fields ?? [])
   const contract = data.contract
   const parentContract = parentAddr && parentData?.contract ? contractRecordToSummary(parentData.contract) : undefined
+  const nftRegistryKind = alphscanNftRegistryKindFromInterfaceId(contract.interface_id)
 
   return (
     <Block>
+      {nftRegistryKind ? (
+        <AddressNftRegistryMetadata
+          kind={nftRegistryKind}
+          row={nftRegistry?.row}
+          nftTraits={nftRegistry?.kind === 'nft' ? nftRegistry.traits : undefined}
+          collectionTraitDefinitions={
+            nftRegistry?.kind === 'nft_collection' ? nftRegistry.trait_definitions : undefined
+          }
+        />
+      ) : null}
       <SectionHeader>
         <h2>{t('Contract state')}</h2>
       </SectionHeader>

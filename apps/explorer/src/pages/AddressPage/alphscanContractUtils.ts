@@ -32,6 +32,8 @@ export function contractRecordToSummary(c: AlphscanContractRecord): ContractSumm
     token_lp_kind: c.token_lp_kind,
     lp_token0_logo_uri: c.lp_token0_logo_uri,
     lp_token1_logo_uri: c.lp_token1_logo_uri,
+    nft_registry_display_name: c.nft_registry_display_name,
+    nft_registry_logo_uri: c.nft_registry_logo_uri,
   }
 }
 
@@ -46,6 +48,30 @@ export function getAlphscanContractApiSettings(): {
     apiKey: import.meta.env.VITE_ALPHSCAN_API_KEY || undefined,
     version: import.meta.env.VITE_ALPHSCAN_API_STAGE || undefined,
     dappLogosBase: (import.meta.env.VITE_DAPP_LOGOS_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '',
+  }
+}
+
+/**
+ * REST base URL for Alphscan HTTP routes (`/contract/...`, `/nft/...`), same shape as `@alphscan/sdk-react`:
+ * `VITE_ALPHSCAN_API_URL` + `VITE_ALPHSCAN_API_STAGE` → e.g. `https://api.alphscan.io/dev`.
+ */
+export function getAlphscanRestBaseUrl(): string | undefined {
+  const { apiUrl, version } = getAlphscanContractApiSettings()
+  if (!apiUrl) return undefined
+  let u = apiUrl.replace(/\/$/, '')
+  const v = version?.trim().replace(/^\/|\/$/g, '')
+  const alreadyStaged = /\/(dev|prod)$/i.test(u)
+  if (v && !alreadyStaged) u = `${u}/${v}`
+  return u
+}
+
+/** Headers matching API Gateway expectations when a key is configured. */
+export function getAlphscanAuthHeaders(): HeadersInit {
+  const { apiKey } = getAlphscanContractApiSettings()
+  if (!apiKey?.trim()) return {}
+  return {
+    'X-API-Key': apiKey,
+    Authorization: `Bearer ${apiKey}`,
   }
 }
 

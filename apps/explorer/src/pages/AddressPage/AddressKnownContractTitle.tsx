@@ -6,15 +6,16 @@ import styled from 'styled-components'
 
 import HighlightedHash from '@/components/HighlightedHash'
 import SectionTitle from '@/components/SectionTitle'
-import { deviceBreakPoints } from '@/styles/globalStyles'
-
-import ExplorerContractAvatar from '@/pages/AddressPage/ExplorerContractAvatar'
+import { pickNftDisplayImageUrl, useAlphscanNftRegistryRow } from '@/hooks/useAlphscanNftRegistryRow'
 import {
-  contractRecordToSummary,
-  tokenWebsiteFromRecord,
-  getAlphscanContractApiSettings,
   type AlphscanContractRecordWithMeta,
+  contractRecordToSummary,
+  getAlphscanContractApiSettings,
+  tokenWebsiteFromRecord
 } from '@/pages/AddressPage/alphscanContractUtils'
+import { alphscanNftRegistryKindFromInterfaceId } from '@/pages/AddressPage/alphscanNftInterface'
+import ExplorerContractAvatar from '@/pages/AddressPage/ExplorerContractAvatar'
+import { deviceBreakPoints } from '@/styles/globalStyles'
 
 interface AddressKnownContractTitleProps {
   addressStr: string
@@ -28,12 +29,14 @@ const AddressKnownContractTitle = ({ addressStr }: AddressKnownContractTitleProp
     settings: {
       apiUrl,
       apiKey,
-      version,
+      version
     },
-    enabled: true,
+    enabled: true
   })
 
   const record = data?.contract as AlphscanContractRecordWithMeta | undefined
+  const { data: nftRegistry } = useAlphscanNftRegistryRow(addressStr, record?.interface_id)
+  const nftRegistryRow = nftRegistry?.row
   const website = record ? tokenWebsiteFromRecord(record) : ''
 
   if (loading) {
@@ -48,25 +51,39 @@ const AddressKnownContractTitle = ({ addressStr }: AddressKnownContractTitleProp
 
   if (error || !record) {
     return (
-      <SectionTitle
-        title={t('Contract')}
-        subtitle={<HighlightedHash text={addressStr} textToCopy={addressStr} />}
-      />
+      <SectionTitle title={t('Contract')} subtitle={<HighlightedHash text={addressStr} textToCopy={addressStr} />} />
     )
   }
 
   const summary = contractRecordToSummary(record)
-  const { primary, qualifier } = knownContractHeading(summary)
+  const { primary: headingPrimary, qualifier } = knownContractHeading(summary)
+  const nftKind = alphscanNftRegistryKindFromInterfaceId(record.interface_id)
+  const nftDisplayName =
+    nftKind
+      ? (nftRegistryRow && typeof nftRegistryRow.display_name === 'string'
+          ? nftRegistryRow.display_name.trim()
+          : '') ||
+        record.nft_registry_display_name?.trim() ||
+        ''
+      : ''
+  const primary = nftDisplayName || headingPrimary
+  const nftAvatarUrl = nftKind
+    ? pickNftDisplayImageUrl(nftRegistryRow ?? undefined) || summary.nft_registry_logo_uri?.trim()
+    : undefined
 
   return (
     <TitleBlock>
       <TopRow>
         <LeftBlock>
-          <ExplorerContractAvatar row={summary} size="lg" dappLocalLogoBaseUrl={dappLogosBase} />
+          <ExplorerContractAvatar
+            row={summary}
+            size="lg"
+            dappLocalLogoBaseUrl={dappLogosBase}
+            overrideTokenImageUrl={nftAvatarUrl}
+          />
           <HeadingText>
             <MainHeading>
-              {primary}{' '}
-              <Qualifier>({qualifier})</Qualifier>
+              {primary} <Qualifier>({qualifier})</Qualifier>
             </MainHeading>
           </HeadingText>
         </LeftBlock>
