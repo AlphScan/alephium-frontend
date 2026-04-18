@@ -18,6 +18,7 @@ type Row = Pick<
   | 'lp_token0_logo_uri'
   | 'lp_token1_logo_uri'
   | 'nft_registry_logo_uri'
+  | 'dia_oracle_display'
 >
 
 interface ExplorerContractAvatarProps {
@@ -41,6 +42,45 @@ const ExplorerContractAvatar = ({
   const fb = iface !== '—' ? `${iface.slice(0, 1)}${iface.slice(1, 2) || '?'}` : 'C?'
   const dappId = row.dapp?.trim()
   const fullRow = row as ContractSummary
+
+  const dia = fullRow.dia_oracle_display
+  const diaTok = dia?.tokenLogoUri?.trim()
+  const diaOra = dia?.oracleLogoUrl?.trim()
+  if (diaTok || diaOra) {
+    const badge = size === 'lg' ? 18 : size === 'md' ? 16 : 14
+    return (
+      <span style={{ position: 'relative', display: 'inline-block', lineHeight: 0 }}>
+        {diaTok ? (
+          <AlphscanAssetLogo
+            variant="token"
+            imageUrl={diaTok}
+            fallbackChar={fb.slice(0, 1)}
+            size={size}
+            tokenClip="rounded"
+          />
+        ) : (
+          <AlphscanAssetLogo variant="token" imageUrl={null} fallbackChar={fb.slice(0, 1)} size={size} />
+        )}
+        {diaOra ? (
+          <img
+            src={diaOra}
+            alt=""
+            width={badge}
+            height={badge}
+            style={{
+              position: 'absolute',
+              right: -2,
+              bottom: -2,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '2px solid var(--bg-primary, #0d1117)',
+              background: 'var(--bg-primary, #0d1117)'
+            }}
+          />
+        ) : null}
+      </span>
+    )
+  }
 
   const override = overrideTokenImageUrl?.trim()
   const nftTile = Boolean(override) || isNftLikeContractRow(fullRow)

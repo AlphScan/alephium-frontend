@@ -193,6 +193,10 @@ export const addressTokensSearchStringsQuery = ({ addressHash, networkId }: Addr
     queryKey: ['address', addressHash, 'level:1', 'tokens-search-strings', { networkId }],
     ...getQueryConfig({ staleTime: Infinity, gcTime: Infinity, networkId }),
     queryFn: async (): Promise<Record<TokenId, string>> => {
+      if (networkId === undefined) {
+        return {}
+      }
+
       const tokensSearchStrings = {} as Record<TokenId, string>
 
       const addressTokensBalances = await queryClient.fetchQuery(addressTokensBalancesQuery({ addressHash, networkId }))
@@ -246,6 +250,10 @@ export const addressTokensByTypeQuery = ({ addressHash, networkId }: AddressLate
     queryKey: ['address', addressHash, 'level:3', 'tokens-by-type', { networkId }],
     ...getQueryConfig({ staleTime: Infinity, gcTime: Infinity, networkId }),
     queryFn: async () => {
+      if (networkId === undefined) {
+        return { listedFts: [], unlistedTokens: [], unlistedFtIds: [], nftIds: [], nstIds: [] }
+      }
+
       const { listedFts, unlistedTokens } = await queryClient.fetchQuery(
         addressBalancesByListingQuery({ addressHash, networkId })
       )

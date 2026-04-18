@@ -34,6 +34,7 @@ export function contractRecordToSummary(c: AlphscanContractRecord): ContractSumm
     lp_token1_logo_uri: c.lp_token1_logo_uri,
     nft_registry_display_name: c.nft_registry_display_name,
     nft_registry_logo_uri: c.nft_registry_logo_uri,
+    dia_oracle_display: c.dia_oracle_display,
   }
 }
 

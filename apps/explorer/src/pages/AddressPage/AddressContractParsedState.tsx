@@ -1,8 +1,17 @@
 import '@alphscan/sdk-react-ui/styles.css'
 
 import { addressFromContractId } from '@alephium/web3'
-import { type AlphscanContractRecordField, useContractRecord } from '@alphscan/sdk-react'
-import { type ContractFieldForState, ContractHierarchyNav, ContractParsedStateView } from '@alphscan/sdk-react-ui'
+import {
+  type AlphscanContractRecord,
+  type AlphscanContractRecordField,
+  useContractRecord
+} from '@alphscan/sdk-react'
+import {
+  type ContractFieldForState,
+  type DiaOracleContractStateAugment,
+  ContractHierarchyNav,
+  ContractParsedStateView
+} from '@alphscan/sdk-react-ui'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
@@ -20,6 +29,21 @@ function explorerHrefForTokenIdHex(hexLower: string): string {
     return `/addresses/${addressFromContractId(h)}`
   } catch {
     return `/addresses/0x${h}`
+  }
+}
+
+function diaOracleForParsedView(c: AlphscanContractRecord): DiaOracleContractStateAugment | null {
+  const d = c.dia_oracle_display
+  if (!d) return null
+  return {
+    valueRaw: d.valueRaw ?? null,
+    timestampRawMs: d.timestampRawMs ?? null,
+    valueUsdFormatted: d.valueUsdFormatted ?? null,
+    timestampHuman: d.timestampHuman ?? null,
+    quotationKey: d.quotationKey,
+    assetLabel: d.assetLabel,
+    tokenLogoUri: d.tokenLogoUri ?? null,
+    oracleLogoUrl: d.oracleLogoUrl ?? null
   }
 }
 
@@ -119,6 +143,7 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
 
   const viewFields = toViewFields(data.fields ?? [])
   const contract = data.contract
+  const diaParsed = diaOracleForParsedView(contract)
   const parentContract = parentAddr && parentData?.contract ? contractRecordToSummary(parentData.contract) : undefined
   const nftRegistryKind = alphscanNftRegistryKindFromInterfaceId(contract.interface_id)
 
@@ -144,6 +169,7 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
           fields={viewFields}
           contractName={contract.contract_name}
           resolvedInterface={contract.contract_interface ?? contract.interface_id}
+          diaOracleDisplay={diaParsed}
           getAddressHref={(address) => `/addresses/${address}`}
           getTokenHref={(tokenIdHexLower) => explorerHrefForTokenIdHex(tokenIdHexLower)}
         />

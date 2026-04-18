@@ -14,9 +14,7 @@ import AddressAssetsCount from '@/pages/AddressPage/AddressAssetsCount'
 import AddressContractParsedState from '@/pages/AddressPage/AddressContractParsedState'
 import AddressGroup from '@/pages/AddressPage/AddressGroup'
 import AddressLatestActivity from '@/pages/AddressPage/AddressLatestActivity'
-import AddressKnownContractTitle from '@/pages/AddressPage/AddressKnownContractTitle'
-import AddressPageTitle from '@/pages/AddressPage/AddressPageTItle'
-import useIsContract from '@/pages/AddressPage/useIsContract'
+import AddressPageHeader from '@/pages/AddressPage/AddressPageHeader'
 import AddressTransactions from '@/pages/AddressPage/AddressTransactions'
 import AddressTransactionsCount from '@/pages/AddressPage/AddressTransactionsCount'
 import AddressTransactionsExportButton from '@/pages/AddressPage/AddressTransactionsExportButton'
@@ -31,7 +29,6 @@ const AddressPage = ({ addressStr }: AddressPageProps) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const dispatch = useAppDispatch()
-  const isContract = useIsContract(addressStr)
 
   useEffect(() => {
     dispatch(initializeViewOnlyAddress(addressStr))
@@ -40,7 +37,7 @@ const AddressPage = ({ addressStr }: AddressPageProps) => {
   return (
     <ApiContextProvider>
       <Section>
-        {isContract ? <AddressKnownContractTitle addressStr={addressStr} /> : <AddressPageTitle addressStr={addressStr} />}
+        <AddressPageHeader addressStr={addressStr} />
         <InfoGridAndQR>
           <InfoGrid>
             <AddressAlphBalances addressStr={addressStr} />
