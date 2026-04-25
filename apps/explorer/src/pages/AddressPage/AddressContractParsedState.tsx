@@ -10,7 +10,8 @@ import {
   type ContractFieldForState,
   type DiaOracleContractStateAugment,
   ContractHierarchyNav,
-  ContractParsedStateView
+  ContractParsedStateView,
+  wormholeParsedAugmentFromMetadata
 } from '@alphscan/sdk-react-ui'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -167,6 +168,9 @@ const AddressContractParsedState = ({ addressStr }: AddressContractParsedStatePr
       ) : (
         <ContractParsedStateView
           fields={viewFields}
+          wormholeParsedAugment={wormholeParsedAugmentFromMetadata(
+            (contract as { contract_metadata?: Record<string, unknown> }).contract_metadata
+          )}
           contractName={contract.contract_name}
           resolvedInterface={contract.contract_interface ?? contract.interface_id}
           diaOracleDisplay={diaParsed}
