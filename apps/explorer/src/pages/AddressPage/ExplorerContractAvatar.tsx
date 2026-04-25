@@ -14,6 +14,8 @@ type Row = Pick<
   | 'contract_interface'
   | 'interface_id'
   | 'token_logo_uri'
+  | 'contract_icon'
+  | 'display_logo_uri'
   | 'token_lp_kind'
   | 'lp_token0_logo_uri'
   | 'lp_token1_logo_uri'
@@ -117,6 +119,22 @@ const ExplorerContractAvatar = ({
         fallbackChar={fb.slice(0, 1)}
         size={size}
         tokenClip="rounded"
+      />
+    )
+  }
+  const dappUrl = row.dapp_logo_uri?.trim() ?? ''
+  const display = row.display_logo_uri?.trim() ?? ''
+  const displayWhenBetterThanDapp = display && display !== dappUrl ? display : ''
+  const poolOrTokenImg =
+    displayWhenBetterThanDapp || row.contract_icon?.trim() || row.token_logo_uri?.trim()
+  if (poolOrTokenImg) {
+    return (
+      <AlphscanAssetLogo
+        variant="token"
+        imageUrl={poolOrTokenImg}
+        fallbackChar={fb.slice(0, 1)}
+        size={size}
+        tokenClip={tokenClip}
       />
     )
   }

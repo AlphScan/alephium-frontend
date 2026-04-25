@@ -16,6 +16,8 @@ export function contractRecordToSummary(c: AlphscanContractRecord): ContractSumm
     dapp: c.dapp,
     dapp_name: c.dapp_name,
     dapp_logo_uri: c.dapp_logo_uri,
+    contract_icon: c.contract_icon,
+    display_logo_uri: c.display_logo_uri,
     interface_id: c.interface_id,
     contract_interface: c.contract_interface,
     contract_name: c.contract_name,
