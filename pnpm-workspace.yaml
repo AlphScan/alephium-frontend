@@ -5,3 +5,8 @@ packages:
   - "../sdk"
   - "../sdk-react"
   - "../sdk-react-ui"
+  # Backend packages required by external/sdk → @alphscan/storage (pnpm workspace:* must be linkable)
+  - "../../packages/alph-helper"
+  - "../../packages/indexer-contract"
+  - "../../packages/plugins"
+  - "../../packages/storage"

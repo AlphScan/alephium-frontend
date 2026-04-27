@@ -13,7 +13,8 @@ import {
   getAlphscanContractApiSettings,
   tokenWebsiteFromRecord
 } from '@/pages/AddressPage/alphscanContractUtils'
-import { alphscanNftRegistryKindFromInterfaceId } from '@/pages/AddressPage/alphscanNftInterface'
+import ContractFungibleTokenHeaderExtras from '@/pages/AddressPage/ContractFungibleTokenHeaderExtras'
+import { alphscanNftRegistryKindFromInterfaceId, isAlphscanFungibleInterfaceId } from '@/pages/AddressPage/alphscanNftInterface'
 import ExplorerContractAvatar from '@/pages/AddressPage/ExplorerContractAvatar'
 import { deviceBreakPoints } from '@/styles/globalStyles'
 
@@ -103,6 +104,12 @@ const AddressKnownContractTitle = ({ addressStr }: AddressKnownContractTitleProp
           </MintTxAfterHash>
         ) : null}
       </HashSubtitle>
+      {isAlphscanFungibleInterfaceId(record.interface_id) && record.contract_id?.trim() ? (
+        <ContractFungibleTokenHeaderExtras
+          tokenIdHex={record.contract_id.trim()}
+          symbolOverride={record.token_symbol?.trim() ?? null}
+        />
+      ) : null}
     </TitleBlock>
   )
 }

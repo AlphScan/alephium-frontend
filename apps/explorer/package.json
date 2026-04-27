@@ -38,6 +38,7 @@
     "@alephium/shared": "workspace:*",
     "@alephium/shared-crypto": "workspace:*",
     "@alephium/shared-react": "workspace:*",
+    "@alephium/get-extension-wallet": "^2.0.3",
     "@alephium/token-list": "^0.0.21",
     "@alephium/web3": "2.0.4",
     "@alphscan/sdk-react": "workspace:*",

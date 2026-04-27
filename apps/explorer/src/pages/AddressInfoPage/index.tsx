@@ -2,7 +2,9 @@ import { isValidAddress } from '@alephium/web3'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { NATIVE_TOKEN_PSEUDO_CONTRACT_ADDRESS } from '@/constants/addresses'
 import { useSnackbar } from '@/hooks/useSnackbar'
+import NativeTokenEasterEgg from '@/pages/AddressInfoPage/NativeTokenEasterEgg'
 import AddressPage from '@/pages/AddressPage/AddressPage'
 
 type ParamTypes = {
@@ -16,6 +18,10 @@ const AddressInfoPage = () => {
   const navigate = useNavigate()
 
   const addressHash = id && isValidAddress(id) ? id : ''
+
+  if (addressHash === NATIVE_TOKEN_PSEUDO_CONTRACT_ADDRESS) {
+    return <NativeTokenEasterEgg />
+  }
 
   if (!addressHash || !isValidAddress(addressHash)) {
     displaySnackbar({ text: t('The address format seems invalid'), type: 'alert' })

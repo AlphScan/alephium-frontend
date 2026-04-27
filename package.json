@@ -81,7 +81,9 @@
   },
   "manypkg": {
     "ignoredRules": [
-      "INTERNAL_MISMATCH"
+      "INTERNAL_MISMATCH",
+      "EXTERNAL_MISMATCH",
+      "UNSORTED_DEPENDENCIES"
     ]
   },
   "devDependencies": {

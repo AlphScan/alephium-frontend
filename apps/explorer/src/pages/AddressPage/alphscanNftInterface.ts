@@ -14,3 +14,10 @@ export function alphscanNftRegistryKindFromInterfaceId(
   if (n === 'nftcollection' || n === 'nftcollectionwithroyalty') return 'nft_collection'
   return null
 }
+
+/** True for AlphScan `contract.interface_id` fungible token contracts (incl. Wormhole pools). */
+export function isAlphscanFungibleInterfaceId(v: string | null | undefined): boolean {
+  if (v == null || typeof v !== 'string') return false
+  const n = v.trim().toLowerCase()
+  return n === 'fungible' || n === 'fungibletoken'
+}

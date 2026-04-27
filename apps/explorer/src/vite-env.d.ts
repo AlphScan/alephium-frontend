@@ -15,6 +15,8 @@ interface ImportMetaEnv {
    * Not VITE_BACKEND_URL (that is the Explorer API). Example: http://localhost:5173
    */
   readonly VITE_ALPHSCAN_EXPLORER_URL?: string
+  /** Optional donation recipient for the native-token easter egg page (defaults to a built-in address). */
+  readonly VITE_DONATION_ADDRESS?: string
 }
 
 interface ImportMeta {
