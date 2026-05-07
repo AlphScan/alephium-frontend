@@ -1,5 +1,6 @@
 import { ALPH } from '@alephium/token-list'
 import { explorer } from '@alephium/web3'
+import type { AddressLabelMainSummary } from '@alphscan/sdk'
 import { ReactElement, ReactNode } from 'react'
 
 import { AddressLink } from './Links'
@@ -10,6 +11,8 @@ interface TransactionIOListProps {
   flex?: boolean
   addressMaxWidth?: string
   IOItemWrapper?: ({ children }: { children: ReactNode }) => ReactElement
+  /** Primary label per address (from tx `alphscan.address_labels`). */
+  addressLabelByAddress?: Record<string, AddressLabelMainSummary> | null
 }
 
 const TransactionIOList = ({
@@ -17,7 +20,8 @@ const TransactionIOList = ({
   outputs = [],
   flex,
   addressMaxWidth = '300px',
-  IOItemWrapper
+  IOItemWrapper,
+  addressLabelByAddress
 }: TransactionIOListProps) => {
   const getAmounts = (io: explorer.Input | explorer.Output) => [
     { id: ALPH.id, amount: BigInt(io.attoAlphAmount ?? 0) },
@@ -43,6 +47,7 @@ const TransactionIOList = ({
                 amounts={getAmounts(input)}
                 maxWidth={addressMaxWidth}
                 flex={flex}
+                labelSummary={addressLabelByAddress?.[input.address]}
               />,
               input.address,
               i
@@ -58,6 +63,7 @@ const TransactionIOList = ({
                 amounts={getAmounts(output)}
                 maxWidth={addressMaxWidth}
                 flex={flex}
+                labelSummary={addressLabelByAddress?.[output.address]}
               />,
               output.address,
               i

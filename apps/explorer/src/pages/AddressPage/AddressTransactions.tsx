@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { usePageVisibility } from 'react-page-visibility'
 import styled, { css } from 'styled-components'
 
-import { queries } from '@/api'
+import { addressAlphscanQueries } from '@/api/addresses/addressAlphscanApi'
 import TimestampExpandButton from '@/components/Buttons/TimestampExpandButton'
 import PageSwitch from '@/components/PageSwitch'
 import Table, { TDStyle } from '@/components/Table/Table'
 import TableBody from '@/components/Table/TableBody'
 import TableHeader from '@/components/Table/TableHeader'
 import usePageNumber from '@/hooks/usePageNumber'
-import AddressTransactionRow from '@/pages/AddressInfoPage/AddressTransactionRow'
+import AddressAlphscanTransactionRow from '@/pages/AddressInfoPage/AddressAlphscanTransactionRow'
 import useIsContract from '@/pages/AddressPage/useIsContract'
 
 export const numberOfTxsPerPage = 10
@@ -31,20 +31,15 @@ const AddressTransactions = ({ addressStr }: AddressTransactionsProps) => {
   const refetchInterval = isAppVisible && pageNumber === 1 ? 10000 : undefined
 
   const { data: txList, isLoading: txListLoading } = useQuery({
-    ...queries.address.transactions.confirmed(addressStr, pageNumber, numberOfTxsPerPage),
+    ...addressAlphscanQueries.transactions(addressStr, pageNumber, numberOfTxsPerPage),
     refetchInterval,
     placeholderData: keepPreviousData
-  })
-
-  const { data: addressMempoolTransactions = [] } = useQuery({
-    ...queries.address.transactions.mempool(addressStr),
-    refetchInterval
   })
 
   return (
     <>
       <Table hasDetails main scrollable isLoading={txListLoading}>
-        {(!txListLoading && txList?.length) || addressMempoolTransactions?.length ? (
+        {!txListLoading && txList?.length ? (
           <>
             <TableHeader
               headerTitles={[
@@ -52,26 +47,27 @@ const AddressTransactions = ({ addressStr }: AddressTransactionsProps) => {
                   {t('Hash & Time')}
                   <TimestampExpandButton />
                 </span>,
+                t('DApp'),
                 t('Type'),
                 t('Assets'),
-                '',
                 t('Addresses_other'),
                 t('Amounts'),
                 ''
               ]}
-              columnWidths={['20%', '25%', '20%', '80px', '25%', '150px', '30px']}
+              columnWidths={['20%', '15%', '20%', '15%', '20%', '150px', '30px']}
               textAlign={['left', 'left', 'left', 'left', 'left', 'right', 'left']}
             />
-            <TableBody tdStyles={TxListCustomStyles}>
-              {addressMempoolTransactions &&
-                addressMempoolTransactions.map((t, i) => (
-                  <AddressTransactionRow transaction={t} addressHash={addressStr} key={i} isInContract={isContract} />
-                ))}
+            <TableBody tdStyles={TxListCustomStyles} disableIntroMotion>
               {txList &&
                 txList
                   .sort((t1, t2) => (t2.timestamp && t1.timestamp ? t2.timestamp - t1.timestamp : 1))
                   .map((t, i) => (
-                    <AddressTransactionRow transaction={t} addressHash={addressStr} key={i} isInContract={isContract} />
+                    <AddressAlphscanTransactionRow
+                      transaction={t}
+                      addressHash={addressStr}
+                      key={i}
+                      isInContract={isContract}
+                    />
                   ))}
             </TableBody>
           </>

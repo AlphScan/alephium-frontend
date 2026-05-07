@@ -1,6 +1,33 @@
+import type { AddressLabelIconSlot } from '@alphscan/sdk'
 import { useQuery } from '@tanstack/react-query'
 
 import { getAlphscanAuthHeaders, getAlphscanRestBaseUrl } from '@/pages/AddressPage/alphscanContractUtils'
+
+/** Aligns with `normalizeAddressLabelIconFromDb` in `@alphscan/storage` (API JSON shape). */
+function normalizeAddressLabelIconFromApi(raw: unknown): AddressLabelIconSlot[] | undefined {
+  if (raw == null) return undefined
+  if (typeof raw === 'string') {
+    const u = raw.trim()
+    if (!u) return undefined
+    if (/^https?:\/\//i.test(u)) return [{ url: u }]
+    try {
+      return normalizeAddressLabelIconFromApi(JSON.parse(u) as unknown)
+    } catch {
+      return undefined
+    }
+  }
+  if (!Array.isArray(raw)) return undefined
+  const out: AddressLabelIconSlot[] = []
+  for (const el of raw) {
+    if (!el || typeof el !== 'object') continue
+    const o = el as Record<string, unknown>
+    const url = typeof o.url === 'string' ? o.url.trim() : ''
+    if (!url || !/^https?:\/\//i.test(url)) continue
+    const hash = o.hash != null && typeof o.hash === 'string' ? o.hash.trim() || null : null
+    out.push(hash != null ? { url, hash } : { url })
+  }
+  return out.length > 0 ? out : undefined
+}
 
 /** Public GET /addresses/{addr}/labels — same shape as AlphScan API. */
 export type ExplorerAddressLabelRow = {
@@ -8,6 +35,10 @@ export type ExplorerAddressLabelRow = {
   label: string
   source: string
   mapped_label?: string
+  /** Ordered CDN logos `{ url, hash? }[]` from `address_label.icon` JSONB. */
+  icon?: AddressLabelIconSlot[]
+  icon_hash?: string
+  display_order?: number
   metadata?: {
     type?: string | null
     name?: string | null
@@ -37,7 +68,10 @@ async function fetchAddressLabels(address: string): Promise<ExplorerAddressLabel
   if (res.status === 404) return []
   if (!res.ok) throw new Error(`Address labels ${res.status}`)
   const data = (await res.json()) as { labels?: ExplorerAddressLabelRow[] }
-  return data.labels ?? []
+  return (data.labels ?? []).map((row) => ({
+    ...row,
+    icon: normalizeAddressLabelIconFromApi((row as { icon?: unknown }).icon)
+  }))
 }
 
 /**

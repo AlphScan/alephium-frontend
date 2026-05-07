@@ -1,8 +1,9 @@
 import { AssetAmount } from '@alephium/shared'
 import { getAddressExplorerPagePath } from '@alephium/shared-react'
+import type { AddressLabelMainSummary } from '@alphscan/sdk'
 import dayjs from 'dayjs'
 import { map } from 'lodash'
-import { ReactNode } from 'react'
+import { type FC, type ReactNode } from 'react'
 import { RiExternalLinkLine } from 'react-icons/ri'
 import { Link, LinkProps } from 'react-router-dom'
 import styled, { css, useTheme } from 'styled-components'
@@ -14,6 +15,7 @@ import { smartHash } from '@/utils/strings'
 
 import Ellipsed from './Ellipsed'
 import HashEllipsed from './HashEllipsed'
+import KnownAddressBadgeLink from './KnownAddressBadgeLink'
 
 interface SimpleLinkProps extends LinkProps {
   newTab?: boolean
@@ -61,6 +63,8 @@ interface AddressLinkProps {
   lockTime?: number
   flex?: boolean
   className?: string
+  /** When set, show AlphScan primary label badge instead of raw address hash (still links to address page). */
+  labelSummary?: AddressLabelMainSummary | null
 }
 
 const AddressLinkBase = ({
@@ -70,7 +74,8 @@ const AddressLinkBase = ({
   amounts,
   lockTime,
   flex,
-  className
+  className,
+  labelSummary
 }: AddressLinkProps) => {
   const theme = useTheme()
   const isLocked = lockTime && dayjs(lockTime).isAfter(dayjs())
@@ -93,7 +98,11 @@ const AddressLinkBase = ({
 
   return (
     <div className={className}>
-      <TightLink to={getAddressExplorerPagePath(address)} maxWidth={maxWidth} text={address} isHash />
+      {labelSummary ? (
+        <KnownAddressBadgeLink address={address} summary={labelSummary} maxWidth={maxWidth} />
+      ) : (
+        <TightLink to={getAddressExplorerPagePath(address)} maxWidth={maxWidth} text={address} isHash />
+      )}
       {txHashRef && (
         <TxLink to={`/transactions/${txHashRef}`} data-tooltip-id="default" data-tooltip-content={txHashRef}>
           <RiExternalLinkLine size={10} />

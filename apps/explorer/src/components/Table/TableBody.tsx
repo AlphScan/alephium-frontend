@@ -6,6 +6,8 @@ import { TDStyle } from './Table'
 interface TableBodyProps {
   tdStyles?: TDStyle[]
   className?: string
+  /** When true, skip tbody opacity intro (e.g. address tx list after data is ready). */
+  disableIntroMotion?: boolean
 }
 
 const bodyVariants = {
@@ -18,11 +20,14 @@ const bodyVariants = {
   }
 }
 
-const TableBody: FC<TableBodyProps> = ({ className, children }) => (
-  <motion.tbody className={className} variants={bodyVariants} initial="hidden" animate="shown">
-    {children}
-  </motion.tbody>
-)
+const TableBody: FC<TableBodyProps> = ({ className, children, disableIntroMotion }) =>
+  disableIntroMotion ? (
+    <tbody className={className}>{children}</tbody>
+  ) : (
+    <motion.tbody className={className} variants={bodyVariants} initial="hidden" animate="shown">
+      {children}
+    </motion.tbody>
+  )
 
 export default styled(TableBody)`
   color: ${({ theme }) => theme.font.primary};

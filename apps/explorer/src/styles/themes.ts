@@ -40,6 +40,9 @@ export const lightTheme: DefaultTheme = {
     valid: '#028f54',
     highlight: '#7f4ffc',
     highlightGradient: 'linear-gradient(45deg, rgba(18,0,218,1) 0%, rgba(255,93,81,1) 100%)'
+  },
+  badge: {
+    contractCall: '#bab8bd'
   }
 }
 
@@ -80,5 +83,9 @@ export const darkTheme: DefaultTheme = {
     valid: '#1dcd84',
     highlight: '#8564e6',
     highlightGradient: 'linear-gradient(45deg, rgba(18,0,218,1) 0%, rgba(255,93,81,1) 100%)'
+  },
+  badge: {
+    contractCall: '#bab8bd'
   }
 }
+ 

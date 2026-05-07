@@ -1,7 +1,9 @@
 import { ALPH } from '@alephium/token-list'
 import { explorer } from '@alephium/web3'
+import type { AddressLabelMainSummary } from '@alphscan/sdk'
+import { AlephiumTransactionWithAlphscan } from '@alphscan/sdk'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { type FC, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiArrowRightLine } from 'react-icons/ri'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -160,17 +162,18 @@ const BlockInfoPage = () => {
 }
 
 interface TransactionRowProps {
-  transaction: explorer.Transaction
+  transaction: AlephiumTransactionWithAlphscan
 }
 
 const TransactionRow: FC<TransactionRowProps> = ({ transaction }) => {
   const { t } = useTranslation()
   const { detailOpen, toggleDetail } = useTableDetailsState(false)
 
-  const tx = transaction
+  const tx = transaction as explorer.Transaction
+  const addressLabels = transaction.alphscan?.address_labels as Record<string, AddressLabelMainSummary> | undefined
   const outputs = tx.outputs as explorer.AssetOutput[]
-  const isConflicted = transaction.conflicted
-  const isScriptExecutionOk = transaction.scriptExecutionOk
+  const isConflicted = tx.conflicted
+  const isScriptExecutionOk = tx.scriptExecutionOk
 
   const totalAmount = outputs?.reduce<bigint>((acc, o) => acc + BigInt(o.attoAlphAmount), BigInt(0))
 
@@ -200,7 +203,13 @@ const TransactionRow: FC<TransactionRowProps> = ({ transaction }) => {
             tx.inputs.map(
               (input, i) =>
                 input.address && (
-                  <AddressLink key={i} address={input.address} txHashRef={input.txHashRef} maxWidth="180px" />
+                  <AddressLink
+                    key={i}
+                    address={input.address}
+                    txHashRef={input.txHashRef}
+                    maxWidth="180px"
+                    labelSummary={addressLabels?.[input.address]}
+                  />
                 )
             )}
         </AnimatedCell>
@@ -215,6 +224,7 @@ const TransactionRow: FC<TransactionRowProps> = ({ transaction }) => {
                 amounts={[{ id: ALPH.id, amount: BigInt(o.attoAlphAmount) }]}
                 lockTime={o.lockTime}
                 flex
+                labelSummary={addressLabels?.[o.address]}
               />
             ))}
           </IODetailList>

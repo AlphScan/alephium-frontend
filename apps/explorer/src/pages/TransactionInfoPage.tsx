@@ -1,15 +1,16 @@
+import '@alphscan/sdk-react-ui/styles.css'
+
 import { isConfirmedTx, MAX_API_RETRIES } from '@alephium/shared'
 import { ALPH } from '@alephium/token-list'
 import { explorer } from '@alephium/web3'
 import { PerChainHeight } from '@alephium/web3/dist/src/api/api-explorer'
+import type { AddressLabelMainSummary } from '@alphscan/sdk'
+import type { AlephiumTransactionWithAlphscan } from '@alphscan/sdk'
 import { useTxNormalizedEvents } from '@alphscan/sdk-react'
 import { NormalizedEventsList } from '@alphscan/sdk-react-ui'
-import '@alphscan/sdk-react-ui/styles.css'
-
-import { getAlphscanExplorerWebBaseUrl } from '@/pages/AddressPage/alphscanContractUtils'
 import { useQuery } from '@tanstack/react-query'
 import _, { sortBy, uniq } from 'lodash'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RiCheckLine } from 'react-icons/ri'
 import { usePageVisibility } from 'react-page-visibility'
@@ -33,6 +34,7 @@ import TableRow from '@/components/Table/TableRow'
 import Timestamp from '@/components/Timestamp'
 import TransactionIOList from '@/components/TransactionIOList'
 import { useSnackbar } from '@/hooks/useSnackbar'
+import { getAlphscanExplorerWebBaseUrl } from '@/pages/AddressPage/alphscanContractUtils'
 import { AssetType } from '@/types/assets'
 import { calculateIoAmountsDelta } from '@/utils/transactions'
 
@@ -65,7 +67,8 @@ const TransactionInfoPage = () => {
     }
   })
 
-  const isConfirmed = transactionData ? isConfirmedTx(transactionData) : false
+  const explorerTx = transactionData ? (transactionData as unknown as explorer.Transaction) : undefined
+  const isConfirmed = explorerTx ? isConfirmedTx(explorerTx) : false
 
   useEffect(() => setIsTxConfirmed(isConfirmed), [isConfirmed, transactionData])
 
@@ -81,7 +84,7 @@ const TransactionInfoPage = () => {
     }
   }, [transactionInfoError])
 
-  const confirmedTxInfo = transactionData && isConfirmedTx(transactionData) ? transactionData : undefined
+  const confirmedTxInfo = explorerTx && isConfirmedTx(explorerTx) ? explorerTx : undefined
   const isConflicted = confirmedTxInfo?.conflicted
 
   const { data: txBlock } = useQuery({
@@ -91,7 +94,7 @@ const TransactionInfoPage = () => {
 
   const { data: chainHeights } = useQuery(queries.infos.all.heights())
 
-  const assetIds = _(confirmedTxInfo?.inputs?.flatMap((i) => i.tokens?.map((t) => t.id)))
+  const assetIds = _(confirmedTxInfo?.inputs?.flatMap((i) => i.tokens?.map((t: { id: string }) => t.id)))
     .uniq()
     .compact()
     .value()
@@ -123,6 +126,27 @@ const TransactionInfoPage = () => {
   })
   const normalizedEvents = normalizedEventsData?.events ?? []
   const alphscanExplorerWebUrl = getAlphscanExplorerWebBaseUrl()
+
+  const mergedTxAddressLabels = useMemo(() => {
+    const m: Record<string, AddressLabelMainSummary> = {}
+    const txAlphscan = (transactionData as AlephiumTransactionWithAlphscan | undefined)?.alphscan?.address_labels
+    if (txAlphscan && typeof txAlphscan === 'object') {
+      for (const [addr, summary] of Object.entries(txAlphscan)) {
+        const key = addr.trim()
+        if (key && summary) m[key] = summary
+      }
+    }
+    for (const ev of normalizedEventsData?.events ?? []) {
+      const labels = (ev as { address_labels?: Record<string, AddressLabelMainSummary> }).address_labels
+      if (!labels) continue
+      for (const [addr, summary] of Object.entries(labels)) {
+        const key = addr.trim()
+        if (!key || m[key] !== undefined) continue
+        m[key] = summary
+      }
+    }
+    return m
+  }, [transactionData, normalizedEventsData])
 
   const getSortedTokens = useCallback(
     (tokenIds: string[]) => {
@@ -265,7 +289,11 @@ const TransactionInfoPage = () => {
                     {addressesInvolved.map((addressHash) => (
                       <DeltaAmountsBox key={addressHash}>
                         <DeltaAmountsTitle>
-                          <AddressLink address={addressHash} maxWidth="200px" />
+                          <AddressLink
+                            address={addressHash}
+                            maxWidth="200px"
+                            labelSummary={mergedTxAddressLabels[addressHash]}
+                          />
                         </DeltaAmountsTitle>
                         <AmountList>
                           {alphDeltaAmounts[addressHash] && (
@@ -353,7 +381,12 @@ const TransactionInfoPage = () => {
                   <span>{t('Inputs')}</span>
                   <div>
                     {confirmedTxInfo.inputs && confirmedTxInfo.inputs.length > 0 ? (
-                      <TransactionIOList inputs={confirmedTxInfo.inputs} flex IOItemWrapper={IOItemContainer} />
+                      <TransactionIOList
+                        inputs={confirmedTxInfo.inputs}
+                        flex
+                        IOItemWrapper={IOItemContainer}
+                        addressLabelByAddress={mergedTxAddressLabels}
+                      />
                     ) : (
                       t('Block rewards')
                     )}
@@ -365,7 +398,12 @@ const TransactionInfoPage = () => {
                   <span>{t('Outputs')}</span>
                   <div>
                     {confirmedTxInfo.outputs ? (
-                      <TransactionIOList outputs={confirmedTxInfo.outputs} flex IOItemWrapper={IOItemContainer} />
+                      <TransactionIOList
+                        outputs={confirmedTxInfo.outputs}
+                        flex
+                        IOItemWrapper={IOItemContainer}
+                        addressLabelByAddress={mergedTxAddressLabels}
+                      />
                     ) : (
                       '-'
                     )}
@@ -374,7 +412,6 @@ const TransactionInfoPage = () => {
               )}
             </TableBody>
           </IOTable>
-
         </>
       ) : (
         <InlineErrorMessage message={errorMessage} code={errorCode} />

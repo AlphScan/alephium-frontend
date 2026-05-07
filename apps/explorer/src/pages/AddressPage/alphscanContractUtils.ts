@@ -1,8 +1,28 @@
 import type { AlphscanContractRecord, ContractSummary } from '@alphscan/sdk-react'
 
+export interface WormholeContractMeta {
+  name?: string
+  symbol?: string
+  decimals?: string
+  poolKind?: string
+  wormholeId?: number
+  chainLogoUrl?: string
+  remoteChainId?: string
+  remoteChainName?: string
+  remoteChainShortName?: string
+  bridgeTokenIdHex?: string
+  remoteTokenIdHex?: string
+  remoteTokenExplorerUrl?: string
+  alephiumTokenIdHex?: string | null
+}
+
 /** API may include joined token metadata (website, etc.); optional on the SDK type. */
 export type AlphscanContractRecordWithMeta = AlphscanContractRecord & {
   token_metadata?: Record<string, unknown>
+  contract_metadata?: {
+    wormhole?: WormholeContractMeta
+    [key: string]: unknown
+  }
 }
 
 export function contractRecordToSummary(c: AlphscanContractRecord): ContractSummary {

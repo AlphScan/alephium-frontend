@@ -108,6 +108,8 @@ const AddressKnownContractTitle = ({ addressStr }: AddressKnownContractTitleProp
         <ContractFungibleTokenHeaderExtras
           tokenIdHex={record.contract_id.trim()}
           symbolOverride={record.token_symbol?.trim() ?? null}
+          wormholeMeta={record.contract_metadata?.wormhole}
+          contractAddress={addressStr}
         />
       ) : null}
     </TitleBlock>

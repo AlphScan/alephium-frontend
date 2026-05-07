@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import styled from 'styled-components'
@@ -7,21 +8,78 @@ import { ReactComponent as AlephiumLogo } from '@/images/alephium_logo_monochrom
 import { useAlphscanTokenBridged } from '@/hooks/useAlphscanTokenBridged'
 import ContractBridgedMappingTags from '@/pages/AddressPage/ContractBridgedMappingTags'
 import { ChipSymbol, NativeTokenChipShell } from '@/pages/AddressPage/contractHeaderChipShared'
+import type { WormholeContractMeta } from '@/pages/AddressPage/alphscanContractUtils'
+import type { AlphscanTokenBridgedMappingRow } from '@/types/alphscanTokenBridged'
+
+function buildWormholeFallbackRow(
+  tokenIdHex: string,
+  contractAddress: string,
+  wm: WormholeContractMeta
+): AlphscanTokenBridgedMappingRow | null {
+  const explorerUrl = wm.remoteTokenExplorerUrl?.trim() || null
+  if (!explorerUrl) return null
+
+  const wormholeChainId = typeof wm.wormholeId === 'number' ? wm.wormholeId : null
+
+  const bridgeHex = wm.bridgeTokenIdHex?.replace(/^0x/i, '').toLowerCase() ?? ''
+  const evmAddress =
+    bridgeHex.length === 64 && bridgeHex.startsWith('000000000000000000000000')
+      ? `0x${bridgeHex.slice(24)}`
+      : bridgeHex.length === 40
+        ? `0x${bridgeHex}`
+        : null
+
+  return {
+    id: `synthetic:${tokenIdHex}:wormhole`,
+    native_token_id: tokenIdHex,
+    chain_id: 8738,
+    contract_address: contractAddress,
+    mapping_kind: 'wormhole_remote_pool',
+    origin_wormhole_chain_id: wormholeChainId,
+    origin_evm_contract_address: evmAddress,
+    origin_token_explorer_url: explorerUrl,
+    origin_wormhole_chain_name: wm.remoteChainName?.trim() || null,
+    wormhole_pool_decimals: null,
+  }
+}
 
 /** Below contract address: optional creation tx → token logo + symbol + token id → bridged tags. */
 const ContractFungibleTokenHeaderExtras = ({
   tokenIdHex,
   creationTxHash,
   symbolOverride,
+  wormholeMeta,
+  contractAddress,
 }: {
   tokenIdHex: string
   creationTxHash?: string
   symbolOverride?: string | null
+  wormholeMeta?: WormholeContractMeta
+  contractAddress?: string
 }) => {
   const { t } = useTranslation()
   const { data } = useAlphscanTokenBridged(tokenIdHex)
   const symbol =
     symbolOverride?.trim() || data?.token?.symbol?.trim() || data?.token?.symbolOnChain?.trim() || null
+
+  const { fallbackRows, chainLogoOverrides, fallbackSymbol } = useMemo(() => {
+    if (!wormholeMeta || !contractAddress) {
+      return { fallbackRows: undefined, chainLogoOverrides: undefined, fallbackSymbol: undefined }
+    }
+    const row = buildWormholeFallbackRow(tokenIdHex, contractAddress, wormholeMeta)
+    const overrides = new Map<number, string>()
+    if (
+      typeof wormholeMeta.wormholeId === 'number' &&
+      wormholeMeta.chainLogoUrl?.trim()
+    ) {
+      overrides.set(wormholeMeta.wormholeId, wormholeMeta.chainLogoUrl.trim())
+    }
+    return {
+      fallbackRows: row ? [row] : undefined,
+      chainLogoOverrides: overrides.size > 0 ? overrides : undefined,
+      fallbackSymbol: wormholeMeta.symbol?.trim() || undefined,
+    }
+  }, [tokenIdHex, contractAddress, wormholeMeta])
 
   return (
     <ExtrasWrap>
@@ -44,7 +102,12 @@ const ContractFungibleTokenHeaderExtras = ({
           <TokenIdHighlighted text={tokenIdHex} textToCopy={tokenIdHex} fontSize={13} />
         </TokenIdWrap>
       </NativeTokenChipShell>
-      <ContractBridgedMappingTags tokenIdHex={tokenIdHex} />
+      <ContractBridgedMappingTags
+        tokenIdHex={tokenIdHex}
+        fallbackRows={fallbackRows}
+        chainLogoOverrides={chainLogoOverrides}
+        fallbackSymbol={fallbackSymbol}
+      />
     </ExtrasWrap>
   )
 }

@@ -42,5 +42,8 @@ declare module 'styled-components' {
       highlight: string
       highlightGradient: string
     }
+    badge: {
+      contractCall: string
+    }
   }
 }

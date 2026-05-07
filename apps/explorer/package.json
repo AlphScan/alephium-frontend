@@ -41,6 +41,8 @@
     "@alephium/get-extension-wallet": "^2.0.3",
     "@alephium/token-list": "^0.0.21",
     "@alephium/web3": "2.0.4",
+    "@alphscan/normalized-events": "workspace:*",
+    "@alphscan/sdk": "workspace:*",
     "@alphscan/sdk-react": "workspace:*",
     "@alphscan/sdk-react-ui": "workspace:*",
     "@reduxjs/toolkit": "^1.9.1",

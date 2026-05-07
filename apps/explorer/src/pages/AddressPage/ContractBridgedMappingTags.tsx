@@ -23,16 +23,27 @@ const hrefDepsSingleton = explorerBridgedHrefDeps()
 function chainLogoUrl(
   row: Pick<AlphscanTokenBridgedMappingRow, 'mapping_kind' | 'chain_id' | 'origin_wormhole_chain_id'>,
   logoByChainId: Map<number, string>,
-  logoByWormholeId: Map<number, string>
+  logoByWormholeId: Map<number, string>,
+  overrides?: Map<number, string>
 ): string | null {
   if (row.mapping_kind === WORMHOLE_REMOTE_POOL && row.origin_wormhole_chain_id != null) {
     const wh = row.origin_wormhole_chain_id
-    return logoByWormholeId.get(wh) ?? null
+    return overrides?.get(wh) ?? logoByWormholeId.get(wh) ?? null
   }
   return logoByChainId.get(row.chain_id) ?? null
 }
 
-const ContractBridgedMappingTags = ({ tokenIdHex }: { tokenIdHex: string }) => {
+const ContractBridgedMappingTags = ({
+  tokenIdHex,
+  fallbackRows,
+  chainLogoOverrides,
+  fallbackSymbol,
+}: {
+  tokenIdHex: string
+  fallbackRows?: AlphscanTokenBridgedMappingRow[]
+  chainLogoOverrides?: Map<number, string>
+  fallbackSymbol?: string | null
+}) => {
   const { data, isPending, error } = useAlphscanTokenBridged(tokenIdHex)
   const { data: chainDir } = useAlphscanChainsDirectory()
 
@@ -45,19 +56,24 @@ const ContractBridgedMappingTags = ({ tokenIdHex }: { tokenIdHex: string }) => {
     [chainDir]
   )
 
-  const rows = data?.bridged ?? []
-  if (error) return null
-  if (isPending && !data) return null
+  const apiRows = data?.bridged ?? []
+  const rows = apiRows.length > 0 ? apiRows : (fallbackRows ?? [])
+  if (error && rows.length === 0) return null
+  if (isPending && !data && rows.length === 0) return null
   if (rows.length === 0) return null
 
-  const symbol = data?.token?.symbol?.trim() || data?.token?.symbolOnChain?.trim() || null
+  const symbol =
+    data?.token?.symbol?.trim() ||
+    data?.token?.symbolOnChain?.trim() ||
+    fallbackSymbol?.trim() ||
+    null
 
   return (
     <TagsWrap>
       {rows.map((row) => {
         const href = defaultResolveBridgedRowPrimaryHref(row, hrefDepsSingleton)
         if (!href) return null
-        const logo = chainLogoUrl(row, logoByChainId, logoByWormholeId)
+        const logo = chainLogoUrl(row, logoByChainId, logoByWormholeId, chainLogoOverrides)
         const contractId =
           row.mapping_kind === WORMHOLE_REMOTE_POOL
             ? (row.origin_evm_contract_address ?? row.contract_address).trim()

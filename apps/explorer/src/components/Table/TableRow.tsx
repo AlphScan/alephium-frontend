@@ -11,6 +11,8 @@ interface RowProps {
   onClick?: React.MouseEventHandler<HTMLTableRowElement>
   linkTo?: string
   className?: string
+  /** When true, render a plain tr (pairs with TableBody disableIntroMotion). */
+  disableIntroMotion?: boolean
 }
 
 const rowVariants = {
@@ -18,22 +20,33 @@ const rowVariants = {
   shown: { opacity: 1 }
 }
 
-const TableRow: FC<RowProps> = ({ children, onClick, linkTo, className }) => (
-  <motion.tr variants={rowVariants} transition={{ duration: 0.8 }} onMouseUp={onClick} className={className}>
-    {Children.map(children, (c) =>
-      // Let's not use the Children API anymore :)
-      linkTo ? (
-        <td style={{ padding: 0 }}>
-          <FullHeightLink className="row-link" to={linkTo}>
-            {c}
-          </FullHeightLink>
-        </td>
-      ) : (
-        <td>{c}</td>
-      )
-    )}
-  </motion.tr>
-)
+const TableRow: FC<RowProps> = ({ children, onClick, linkTo, className, disableIntroMotion }) => {
+  const cells = Children.map(children, (c) =>
+    linkTo ? (
+      <td style={{ padding: 0 }}>
+        <FullHeightLink className="row-link" to={linkTo}>
+          {c}
+        </FullHeightLink>
+      </td>
+    ) : (
+      <td>{c}</td>
+    )
+  )
+
+  if (disableIntroMotion) {
+    return (
+      <tr onMouseUp={onClick} className={className}>
+        {cells}
+      </tr>
+    )
+  }
+
+  return (
+    <motion.tr variants={rowVariants} transition={{ duration: 0.8 }} onMouseUp={onClick} className={className}>
+      {cells}
+    </motion.tr>
+  )
+}
 
 export default styled(TableRow)`
   background-color: ${({ theme, isActive }) => (isActive ? theme.bg.primary : '')};
