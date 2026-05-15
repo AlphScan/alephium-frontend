@@ -42,6 +42,7 @@ export function renderEventShortLabelIcon(
 export function renderCexEventIconEnhanced(
   category: string,
   subKind: string,
+  variant: EventShortLabelBadgeVariant,
   props: EventShortLabelIconProps
 ): ReactNode {
   if (category === 'cex') {
@@ -52,13 +53,12 @@ export function renderCexEventIconEnhanced(
   if (category === 'transfer') {
     switch (subKind) {
       case 'send_to_cex':
-        return renderCexEventIcon('withdraw', props) // Money going to CEX (like withdraw from user perspective)
+        return renderCexEventIcon('withdraw', props)
       case 'received_from_cex':
-        return renderCexEventIcon('deposit', props) // Money coming from CEX (like deposit to user perspective)
+        return renderCexEventIcon('deposit', props)
     }
   }
   
-  // Fallback to regular variant-based rendering
-  const variant = category === 'cex' ? EventShortLabelBadgeVariants.CEX : EventShortLabelBadgeVariants.TRANSFER
+  // Fallback to the resolved badge variant so non-CEX/transfer categories (Burn, Token, etc.) get the right icon
   return renderEventShortLabelIcon(variant, props)
 }

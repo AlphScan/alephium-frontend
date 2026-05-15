@@ -7,6 +7,7 @@ import {
 import styled from 'styled-components'
 
 import { useAssetMetadata } from '@/api/assets/assetsHooks'
+import { pickNftDisplayImageUrl, useAlphscanNftMeta } from '@/hooks/useAlphscanNftRegistryRow'
 
 import AssetLogo from './AssetLogo'
 
@@ -50,6 +51,9 @@ const Amount = ({
   const isNegative = value && value < 0
 
   const assetType = assetMetadata.type
+
+  const { data: alphscanNft } = useAlphscanNftMeta(assetType === 'non-fungible' && assetId ? assetId : '')
+  const alphscanCdnUrl = pickNftDisplayImageUrl(alphscanNft)
   const isUnknownToken = assetType === undefined
 
   let decimals = 0
@@ -144,10 +148,17 @@ const Amount = ({
       ) : assetType === 'non-fungible' && assetId ? (
         <NFT>
           {displaySign && <span>{isNegative ? '-' : '+'}</span>}
-          <NFTName data-tooltip-id="default" data-tooltip-content={assetMetadata.file.name}>
-            {assetMetadata.file.name}
+          <NFTName
+            data-tooltip-id="default"
+            data-tooltip-content={alphscanNft?.display_name || assetMetadata.file?.name}
+          >
+            {alphscanNft?.display_name || assetMetadata.file?.name}
           </NFTName>
-          <NFTInlineLogo assetId={assetId} size={15} showTooltip />
+          {alphscanCdnUrl ? (
+            <NFTInlineImg src={alphscanCdnUrl} alt={alphscanNft?.display_name || ''} />
+          ) : (
+            <NFTInlineLogo assetId={assetId} size={15} showTooltip />
+          )}
         </NFT>
       ) : isUnknownToken || !decimals ? (
         <RawAmountComponent />
@@ -230,4 +241,13 @@ const NFTName = styled.div`
 const NFTInlineLogo = styled(AssetLogo)`
   display: inline-block;
   margin-left: 2px;
+`
+
+const NFTInlineImg = styled.img`
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  object-fit: cover;
+  margin-left: 2px;
+  flex-shrink: 0;
 `

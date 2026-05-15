@@ -26,6 +26,8 @@ interface TightLinkProps extends SimpleLinkProps {
   maxWidth: string
   text: string
   isHash?: boolean
+  /** When set with isHash, render a fixed-length `head…tail` truncation instead of responsive ellipsis. */
+  chars?: number
 }
 
 export const SimpleLink = ({ children, newTab, ...props }: SimpleLinkProps) => (
@@ -34,7 +36,7 @@ export const SimpleLink = ({ children, newTab, ...props }: SimpleLinkProps) => (
   </StyledLink>
 )
 
-export const TightLink: FC<TightLinkProps> = ({ maxWidth, text, isHash, ...props }) => (
+export const TightLink: FC<TightLinkProps> = ({ maxWidth, text, isHash, chars, ...props }) => (
   <div style={{ maxWidth: maxWidth, display: 'flex', overflow: 'hidden' }}>
     <StyledLink
       {...props}
@@ -42,7 +44,15 @@ export const TightLink: FC<TightLinkProps> = ({ maxWidth, text, isHash, ...props
         e.stopPropagation()
       }}
     >
-      {isHash ? <HashEllipsed hash={text} /> : <Ellipsed text={text} />}
+      {isHash && chars != null ? (
+        <span data-tooltip-id="default" data-tooltip-content={text} style={{ fontFamily: 'Roboto Mono' }}>
+          {text.length <= chars * 2 + 3 ? text : `${text.slice(0, chars)}...${text.slice(-chars)}`}
+        </span>
+      ) : isHash ? (
+        <HashEllipsed hash={text} />
+      ) : (
+        <Ellipsed text={text} />
+      )}
     </StyledLink>
   </div>
 )
@@ -65,6 +75,8 @@ interface AddressLinkProps {
   className?: string
   /** When set, show AlphScan primary label badge instead of raw address hash (still links to address page). */
   labelSummary?: AddressLabelMainSummary | null
+  /** When true, render address as a fixed 5…5 truncation instead of responsive ellipsis. */
+  shortAddress?: boolean
 }
 
 const AddressLinkBase = ({
@@ -75,7 +87,8 @@ const AddressLinkBase = ({
   lockTime,
   flex,
   className,
-  labelSummary
+  labelSummary,
+  shortAddress
 }: AddressLinkProps) => {
   const theme = useTheme()
   const isLocked = lockTime && dayjs(lockTime).isAfter(dayjs())
@@ -101,7 +114,7 @@ const AddressLinkBase = ({
       {labelSummary ? (
         <KnownAddressBadgeLink address={address} summary={labelSummary} maxWidth={maxWidth} />
       ) : (
-        <TightLink to={getAddressExplorerPagePath(address)} maxWidth={maxWidth} text={address} isHash />
+        <TightLink to={getAddressExplorerPagePath(address)} maxWidth={maxWidth} text={address} isHash chars={shortAddress ? 5 : undefined} />
       )}
       {txHashRef && (
         <TxLink to={`/transactions/${txHashRef}`} data-tooltip-id="default" data-tooltip-content={txHashRef}>

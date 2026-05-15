@@ -1,3 +1,4 @@
+import { addressFromContractId } from '@alephium/web3'
 import { useQuery } from '@tanstack/react-query'
 
 import { getAlphscanAuthHeaders, getAlphscanRestBaseUrl } from '@/pages/AddressPage/alphscanContractUtils'
@@ -90,6 +91,31 @@ async function fetchNftRegistryJson(
       ? (data.trait_definitions as AlphscanCollectionTraitDefRow[])
       : []
   }
+}
+
+/**
+ * Lightweight hook for the NFT amounts column — fetches the Alphscan-enriched NFT row
+ * (`display_name`, `display_image_cdn_preview_url`, etc.) for a single token id without
+ * requiring a prior interface-id probe. Returns `null` when the token is not in the
+ * Alphscan NFT registry (API 404) or when `tokenId` is empty.
+ */
+export function useAlphscanNftMeta(tokenId: string) {
+  const base = getAlphscanRestBaseUrl()
+  return useQuery({
+    queryKey: ['alphscan-nft-meta', base, tokenId] as const,
+    queryFn: async (): Promise<AlphscanNftRow | null> => {
+      if (!base || !tokenId) return null
+      // The API expects the base58 contract address, not the raw hex token ID
+      const contractAddress = addressFromContractId(tokenId)
+      const path = `${base}/nft/${encodeURIComponent(contractAddress)}/details`
+      const res = await fetch(path, { headers: getAlphscanAuthHeaders() })
+      if (!res.ok) return null
+      const data = (await res.json()) as Record<string, unknown>
+      return (data.nft as AlphscanNftRow) ?? null
+    },
+    enabled: Boolean(base && tokenId),
+    staleTime: 5 * 60 * 1000
+  })
 }
 
 /**

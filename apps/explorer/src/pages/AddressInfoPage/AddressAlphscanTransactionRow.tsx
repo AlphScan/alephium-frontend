@@ -1,7 +1,7 @@
 import { isConfirmedTx, isSameBaseAddress } from '@alephium/shared'
 import { isGrouplessAddressWithoutGroupIndex } from '@alephium/web3'
 import type { MempoolTransaction, Transaction } from '@alephium/web3/dist/src/api/api-explorer'
-import { resolveEventShortLabel } from '@alphscan/normalized-events'
+import { EventShortLabelBadgeVariants, resolveEventShortLabel } from '@alphscan/normalized-events'
 import { AlephiumTransactionWithAlphscan } from '@alphscan/sdk'
 import _ from 'lodash'
 import { useTranslation } from 'react-i18next'
@@ -58,6 +58,7 @@ const AddressAlphscanTransactionRow = ({
 
   const hasAlphscanKind = Boolean(tx.alphscan?.category && tx.alphscan?.sub_kind)
   const eventShort = hasAlphscanKind ? resolveEventShortLabel(tx.alphscan!.category, tx.alphscan!.sub_kind) : null
+  const isBurnTx = eventShort?.badgeVariant === EventShortLabelBadgeVariants.BURN
   const contractPageTypeFallback =
     isInContract && !hasAlphscanKind ? resolveEventShortLabel('contract_call', 'call') : null
 
@@ -85,6 +86,7 @@ const AddressAlphscanTransactionRow = ({
           address={firstAddress}
           maxWidth="250px"
           labelSummary={addressLabels?.[firstAddress]}
+          shortAddress
         />
       )
     }
@@ -100,10 +102,10 @@ const AddressAlphscanTransactionRow = ({
 
     const out0 = outputs.at(0) ?? ''
     return (
-      <div>
-        <AddressLink address={out0} maxWidth="250px" labelSummary={addressLabels?.[out0]} />
-        {outputs.length > 1 && ` (+ ${outputs.length - 1})`}
-      </div>
+      <AddressWithCount>
+        <AddressLink address={out0} maxWidth="250px" labelSummary={addressLabels?.[out0]} shortAddress />
+        {outputs.length > 1 && <MoreCount>(+ {outputs.length - 1})</MoreCount>}
+      </AddressWithCount>
     )
   }
 
@@ -114,14 +116,32 @@ const AddressAlphscanTransactionRow = ({
       .uniq()
       .value()
 
-    return inputs.length > 0 ? (
-      <div>
-        {inputs[0] && <AddressLink address={inputs[0]} maxWidth="250px" labelSummary={addressLabels?.[inputs[0]]} />}
-        {inputs.length > 1 && ` (+ ${inputs.length - 1})`}
-      </div>
-    ) : (
-      <BlockRewardLabel>{t('Block rewards')}</BlockRewardLabel>
-    )
+    if (inputs.length > 0) {
+      return (
+        <AddressWithCount>
+          {inputs[0] && <AddressLink address={inputs[0]} maxWidth="250px" labelSummary={addressLabels?.[inputs[0]]} shortAddress />}
+          {inputs.length > 1 && <MoreCount>(+ {inputs.length - 1})</MoreCount>}
+        </AddressWithCount>
+      )
+    }
+
+    if (isBurnTx && tx.outputs) {
+      const contractOutputs = _(tx.outputs.filter((o) => o.address && o.address !== addressHash))
+        .map((v) => v.address as string)
+        .uniq()
+        .value()
+      if (contractOutputs.length > 0) {
+        const addr0 = contractOutputs[0]
+        return (
+          <AddressWithCount>
+            <AddressLink address={addr0} maxWidth="250px" labelSummary={addressLabels?.[addr0]} shortAddress />
+            {contractOutputs.length > 1 && <MoreCount>(+ {contractOutputs.length - 1})</MoreCount>}
+          </AddressWithCount>
+        )
+      }
+    }
+
+    return <BlockRewardLabel>{t('Block rewards')}</BlockRewardLabel>
   }
 
   return (
@@ -201,7 +221,7 @@ const AddressAlphscanTransactionRow = ({
               renderInputAccounts()
             ) : infoType === 'move' || infoType === 'moveGroup' || infoType === 'out' ? (
               isGrouplessAddress && !direction ? (
-                <AddressLink address={addressHash} maxWidth="250px" labelSummary={addressLabels?.[addressHash]} />
+                <AddressLink address={addressHash} maxWidth="250px" labelSummary={addressLabels?.[addressHash]} shortAddress />
               ) : (
                 renderOutputAccounts()
               )
@@ -370,6 +390,20 @@ const TypeCell = styled.div`
 
 const AddressesCell = styled.div`
   min-width: 150px;
+`
+
+const AddressWithCount = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+`
+
+const MoreCount = styled.span`
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: ${({ theme }) => theme.font.secondary};
+  font-size: 0.85em;
 `
 
 const AmountCell = styled.span`

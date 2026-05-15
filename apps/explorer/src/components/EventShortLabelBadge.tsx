@@ -22,8 +22,8 @@ const EventShortLabelBadge = ({ shortLabel, variant, category, subKind }: EventS
   const fill = colord(accent).alpha(0.1).toRgbString()
 
   // Use enhanced CEX icon rendering if category and subKind are provided
-  const icon = (category && subKind) 
-    ? renderCexEventIconEnhanced(category, subKind, { size: iconSize, color: accent })
+  const icon = (category && subKind)
+    ? renderCexEventIconEnhanced(category, subKind, variant, { size: iconSize, color: accent })
     : renderEventShortLabelIcon(variant, { size: iconSize, color: accent })
 
   return (
